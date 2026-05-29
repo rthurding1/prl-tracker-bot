@@ -5,6 +5,7 @@ $25M increment (cooldown-limited), and answers on-demand /status requests.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import threading
@@ -151,6 +152,12 @@ async def _on_startup(app: Application) -> None:
 
 def main() -> None:
     config.validate()
+    # PTB's run_polling relies on a current event loop existing in the main
+    # thread; Python 3.12+ no longer auto-creates one, so ensure it here.
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
     _start_keepalive_server()
     app = Application.builder().token(config.BOT_TOKEN).post_init(_on_startup).build()
 
