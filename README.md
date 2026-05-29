@@ -57,9 +57,10 @@ Then message your bot `/status` in Telegram.
 ## Deploy on Render (free, no credit card)
 
 Render's free tier has no worker type and **spins a service down after ~15 min
-without inbound HTTP traffic**. The bot handles this: when `$PORT` is set it
-starts a tiny keepalive HTTP server, and you point a free uptime pinger at it to
-stay awake. `render.yaml` is included.
+without inbound HTTP traffic**. The bot handles this itself: when `$PORT` is set
+it starts a tiny keepalive HTTP server, and it **self-pings `RENDER_EXTERNAL_URL`
+every 10 min** to stay awake — no external uptime monitor required. Deploy in a
+**non-US region** (Binance/Bybit return 451/403 from US IPs). `render.yaml` is included.
 
 1. Push this folder to a GitHub repo.
 2. On [render.com](https://render.com) → **New → Web Service** → connect the repo.
@@ -67,11 +68,10 @@ stay awake. `render.yaml` is included.
    start `python bot.py`, plan **free**.
 3. Set env vars: `TELEGRAM_BOT_TOKEN` (and optionally `TELEGRAM_CHAT_ID`).
    Render injects `PORT` automatically → the keepalive server binds it.
-4. Deploy. Logs should show `Keepalive HTTP server listening on :<port>` and
-   `Starting $PRL tracker bot`. Copy the service URL (e.g. `https://prl-tracker-bot.onrender.com`).
-5. **Keep it awake:** create a free monitor at [UptimeRobot](https://uptimerobot.com)
-   or [cron-job.org](https://cron-job.org) that GETs that URL every **10 minutes**.
-6. Send `/status` in Telegram to confirm.
+4. Deploy. Logs should show `Keepalive HTTP server listening on :<port>`,
+   `Self-ping keepalive enabled`, and `Starting $PRL tracker bot`.
+5. Send `/status` in Telegram to confirm. The self-ping keeps it awake — no
+   external uptime monitor needed.
 
 > Note: `state.json` (subscribers + alert state) lives on local disk and resets
 > on redeploy. Set `TELEGRAM_CHAT_ID` so you're auto-subscribed on every startup.

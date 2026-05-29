@@ -12,6 +12,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+import httpx
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -141,6 +142,19 @@ def _start_keepalive_server() -> None:
     log.info("Keepalive HTTP server listening on :%s", port)
 
 
+async def keepalive_ping(ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """GET our own public URL so Render's free tier never goes idle (>15 min)."""
+    url = config.PUBLIC_URL
+    if not url:
+        return
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=20.0)
+        log.info("keepalive ping %s -> %s", url, resp.status_code)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("keepalive ping failed: %s", exc)
+
+
 async def _on_startup(app: Application) -> None:
     # Auto-subscribe any chat ids provided via env, so you get alerts out of the box.
     for raw in config.DEFAULT_CHAT_IDS:
@@ -170,6 +184,11 @@ def main() -> None:
     app.job_queue.run_repeating(
         poll_job, interval=config.POLL_INTERVAL_SECONDS, first=5
     )
+    if config.PUBLIC_URL:
+        app.job_queue.run_repeating(
+            keepalive_ping, interval=config.KEEPALIVE_PING_SECONDS, first=config.KEEPALIVE_PING_SECONDS
+        )
+        log.info("Self-ping keepalive enabled for %s every %ss", config.PUBLIC_URL, config.KEEPALIVE_PING_SECONDS)
 
     log.info("Starting $PRL tracker bot (poll every %ss)", config.POLL_INTERVAL_SECONDS)
     app.run_polling(allowed_updates=Update.ALL_TYPES)

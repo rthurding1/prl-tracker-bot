@@ -44,6 +44,11 @@ POLL_INTERVAL_SECONDS = _int("POLL_INTERVAL_SECONDS", 60)
 # --- State persistence ---
 STATE_FILE = os.getenv("STATE_FILE", "state.json").strip()
 
+# --- Keepalive (self-ping to stop Render's free tier from sleeping) ---
+# Render injects RENDER_EXTERNAL_URL automatically; PUBLIC_URL overrides it.
+PUBLIC_URL = (os.getenv("PUBLIC_URL") or os.getenv("RENDER_EXTERNAL_URL") or "").strip()
+KEEPALIVE_PING_SECONDS = _int("KEEPALIVE_PING_SECONDS", 600)
+
 
 def validate() -> None:
     if not BOT_TOKEN:
