@@ -16,9 +16,24 @@ class Snapshot:
     cg: coingecko.CoinGeckoData
     perps: list[ExchangePerp]
 
+    def _best_mark_price(self) -> float | None:
+        for p in self.perps:
+            if p.mark_price:
+                return p.mark_price
+        return None
+
+    @property
+    def price(self) -> float | None:
+        """Spot price from CoinGecko, falling back to an exchange mark price."""
+        return self.cg.price_usd if self.cg.price_usd is not None else self._best_mark_price()
+
     @property
     def fdv(self) -> float | None:
-        return self.cg.fdv_usd
+        """FDV from CoinGecko, falling back to price x max supply."""
+        if self.cg.fdv_usd is not None:
+            return self.cg.fdv_usd
+        px = self.price
+        return px * config.MAX_SUPPLY if px is not None else None
 
     @property
     def available_perps(self) -> list[ExchangePerp]:

@@ -26,6 +26,10 @@ DEFAULT_CHAT_IDS = [c.strip() for c in _default_chats.split(",") if c.strip()]
 
 # --- Token / market ---
 COINGECKO_ID = os.getenv("COINGECKO_ID", "perle").strip()
+# Optional free CoinGecko demo key (raises rate limits on shared cloud IPs).
+COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY", "").strip()
+# Max supply used to derive FDV as a fallback when CoinGecko is unavailable.
+MAX_SUPPLY = float(os.getenv("MAX_SUPPLY", "1000000000").replace("_", ""))
 # Perp symbols per exchange (OI is combined across all three).
 BINANCE_SYMBOL = os.getenv("BINANCE_SYMBOL", "PRLUSDT").strip()
 BYBIT_SYMBOL = os.getenv("BYBIT_SYMBOL", "PRLUSDT").strip()

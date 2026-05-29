@@ -44,8 +44,8 @@ def format_card(snap: Snapshot, header: str | None = None) -> str:
     if header:
         lines.append(header)
     lines.append("🪼 *$PRL — Perle*")
-    lines.append(f"Price: {_price(cg.price_usd)}  (24h {_pct(cg.change_24h_pct)})")
-    lines.append(f"FDV:   {_money(cg.fdv_usd)}   |  MCap: {_money(cg.market_cap_usd)}")
+    lines.append(f"Price: {_price(snap.price)}  (24h {_pct(cg.change_24h_pct)})")
+    lines.append(f"FDV:   {_money(snap.fdv)}   |  MCap: {_money(cg.market_cap_usd)}")
     lines.append("─────────────")
     lines.append(f"OI total: {_money(total_oi)}")
     for p in snap.perps:
